@@ -6,7 +6,6 @@
 # Author: Sebastian Thomschke, Vegard IT GmbH
 #
 # https://github.com/vegardit/docker-meshcentral
-#
 
 source /opt/bash-init.sh
 
@@ -53,7 +52,7 @@ fi
 
 if [[ -n $OSSLSIGNCODE_OPTS ]]; then
    for exe in $(find ./node_modules/meshcentral/agents/ -name *-signed.exe); do
-      log INFO "Signing Windows binary [${exe/-signed/}]..."
+      log INFO "Signing Windows binary [${exe/-signed/}] using osslsigncode..."
       eval "osslsigncode sign $OSSLSIGNCODE_OPTS -in ${exe/-signed/} -out $exe"
    done
 fi

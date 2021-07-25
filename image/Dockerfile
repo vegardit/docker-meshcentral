@@ -5,9 +5,10 @@
 # Author: Sebastian Thomschke, Vegard IT GmbH
 #
 # https://github.com/vegardit/docker-meshcentral
-#
 
-FROM node:lts-buster-slim
+ARG BASE_IMAGE=lts-buster-slim
+
+FROM ${BASE_IMAGE}
 
 LABEL maintainer="Vegard IT GmbH (vegardit.com)"
 
@@ -22,6 +23,7 @@ ARG BASE_LAYER_CACHE_KEY
 ARG INSTALL_SUPPORT_TOOLS=0
 
 COPY --from=vegardit/osslsigncode:develop-debian /usr/local/bin/osslsigncode /usr/local/bin/osslsigncode
+COPY --from=vegardit/softhsm2-pkcs11-proxy:develop-debian /usr/local/lib/libpkcs11-proxy* /usr/local/lib/
 
 RUN --mount=type=bind,source=.shared,target=/mnt/shared \
   set -eu && \
@@ -43,6 +45,28 @@ RUN --mount=type=bind,source=.shared,target=/mnt/shared \
      netbase \
      && \
   osslsigncode --version && \
+  #
+  echo "#################################################" && \
+  echo "Installing libraries required by libpkcs11-proxy..." && \
+  echo "#################################################" && \
+  apt-get install --no-install-recommends -y libengine-pkcs11-openssl && \
+  # -> /usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so
+  # -> /usr/lib/x86_64-linux-gnu/engines-1.1/libpkcs11.so
+  # -> After this operation, 6714 kB of additional disk space will be used.
+  #
+  #apt-get install --no-install-recommends -y opensc-pkcs11 && \
+  # -> /usr/lib/x86_64-linux-gnu/pkcs11/opensc-pkcs11.so
+  # -> /usr/lib/x86_64-linux-gnu/opensc-pkcs11.so
+  # -> After this operation, 10.6 MB of additional disk space will be used.
+  # -> opensc-pkcs11.so compatible with osslsigncode, results in:
+  #   Failed to set 'dynamic' engine
+  #   error:2506406A:DSO support routines:dlfcn_bind_func:could not bind to the requested symbol name:
+  #     ../crypto/dso/dso_dlfcn.c:188:symname(bind_engine):
+  #     /usr/lib/x86_64-linux-gnu/opensc-pkcs11.so: undefined symbol: bind_engine
+  #   error:2506C06A:DSO support routines:DSO_bind_func:could not bind to the requested symbol name:
+  #     ../crypto/dso/dso_lib.c:186:
+  #   error:260B6068:engine routines:dynamic_load:DSO failure:
+  #     ../crypto/engine/eng_dyn.c:427: Failed
   #
   echo "#################################################" && \
   echo "Configuring Node.js ..." && \
