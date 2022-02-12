@@ -119,12 +119,13 @@ USER node
 WORKDIR /opt/meshcentral
 
 RUN \
-  set -eu && \
+  set -eux && \
   echo -e '{\n\
     "name": "meshcentral-server",\n\
     "version": "0.0.0"\n\
 }' > package.json && \
   npm install meshcentral --only=production && \
+  npm list && \
   node ./node_modules/meshcentral --help
 
 COPY image/run.sh /opt/run.sh
