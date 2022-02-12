@@ -17,7 +17,7 @@ source "$shared_lib/lib/build-image-init.sh"
 #################################################
 docker_registry=${DOCKER_REGISTRY:-docker.io}
 image_repo=${DOCKER_IMAGE_REPO:-vegardit/meshcentral}
-base_image_name=${DOCKER_BASE_IMAGE:-node:lts-buster-slim}
+base_image_name=${DOCKER_BASE_IMAGE:-node:lts-bullseye-slim}
 image_name=$image_repo:latest
 
 

@@ -6,7 +6,7 @@
 #
 # https://github.com/vegardit/docker-meshcentral
 
-ARG BASE_IMAGE=lts-buster-slim
+ARG BASE_IMAGE=node:lts-bullseye-slim
 
 FROM ${BASE_IMAGE}
 
