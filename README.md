@@ -81,7 +81,7 @@ docker run -it \
   --publish 80:80 \
   --publish 443:443 \
   --publish 4443:4443 \
-  --env CONFIG_TEMPLATE_FILE="/opt/config-template.json" \
+  --env CONFIG_TEMPLATE_FILE="/opt/my-config-template.json" \
   --env MC_HOSTNAME="meshcentral.local" \
   --env MC_SESSION_KEY="Ca8ybTCVcLo3PZz2oXkNxpvY" \
   --volume /opt/data/templates/meshcentral-config-template.json:/opt/my-config-template.json:ro \
@@ -106,9 +106,9 @@ docker run -it \
   --publish 80:80 \
   --publish 443:443 \
   --publish 4443:4443 \
-  --env CONFIG_TEMPLATE_FILE="/opt/config-template.json" \
+  --env CONFIG_TEMPLATE_FILE="/opt/my-config-template.json" \
   --env INIT_SH_FILE="/opt/my-init.sh" \
-  --volume /opt/data/templates/meshcentral-config-template.json:/opt/config-template.json:ro \
+  --volume /opt/data/templates/meshcentral-config-template.json:/opt/my-config-template.json:ro \
   --volume /opt/data/templates/meshcentral-init.sh:/opt/my-init.sh:ro \
   vegardit/meshcentral:latest
 ```
