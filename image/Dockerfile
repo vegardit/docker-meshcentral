@@ -1,60 +1,71 @@
-#syntax=docker/dockerfile:1
-# Copyright 2021 by Vegard IT GmbH, Germany, https://vegardit.com
+#syntax=docker/dockerfile:1.4
+# see https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md#user-content-syntax
+# see https://docs.docker.com/build/dockerfile/frontend/
+# see https://docs.docker.com/engine/reference/builder/#syntax
+#
+# SPDX-FileCopyrightText: © Vegard IT GmbH (https://vegardit.com)
+# SPDX-FileContributor: Sebastian Thomschke
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-ArtifactOfProjectHomePage: https://github.com/vegardit/docker-meshcentral
 #
-# Author: Sebastian Thomschke, Vegard IT GmbH
-#
-# https://github.com/vegardit/docker-meshcentral
+# https://hub.docker.com/_/node/tags?name=lts-bookworm-slim
 
-ARG BASE_IMAGE=node:lts-bullseye-slim
+# see https://github.com/hadolint/hadolint/wiki/DL3006
+# hadolint ignore=DL3006
+ARG BASE_IMAGE=node:lts-bookworm-slim
 
+# see https://github.com/hadolint/hadolint/wiki/DL3006
+# hadolint ignore=DL3006
 FROM ${BASE_IMAGE}
 
 LABEL maintainer="Vegard IT GmbH (vegardit.com)"
 
+# see https://github.com/hadolint/hadolint/wiki/DL3002
+# hadolint ignore=DL3002
 USER root
 
-SHELL ["/bin/bash", "-c"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG LC_ALL=C
 
-ARG BASE_LAYER_CACHE_KEY
 ARG INSTALL_SUPPORT_TOOLS=0
+
+ARG BASE_LAYER_CACHE_KEY
 
 COPY --from=vegardit/osslsigncode:develop-debian /usr/local/bin/osslsigncode /usr/local/bin/osslsigncode
 COPY --from=vegardit/softhsm2-pkcs11-proxy:develop-debian /usr/local/lib/libpkcs11-proxy* /usr/local/lib/
 
-RUN --mount=type=bind,source=.shared,target=/mnt/shared \
-  set -eu && \
-  /mnt/shared/cmd/debian-install-os-updates.sh && \
-  /mnt/shared/cmd/debian-install-support-tools.sh && \
-  #
-  echo "#################################################" && \
-  echo "Installing tini..." && \
-  echo "#################################################" && \
-  apt-get install --no-install-recommends -y tini && \
-  #
-  echo "#################################################" && \
-  echo "Installing libraries required by osslsigncode ..." && \
-  echo "#################################################" && \
+RUN --mount=type=bind,source=.shared,target=/mnt/shared <<EOF
+
+  /mnt/shared/cmd/debian-install-os-updates.sh
+  /mnt/shared/cmd/debian-install-support-tools.sh
+
+  echo "#################################################"
+  echo "Installing tini..."
+  echo "#################################################"
+  apt-get install --no-install-recommends -y tini
+
+  echo "#################################################"
+  echo "Installing libraries required by osslsigncode ..."
+  echo "#################################################"
   apt-get install --no-install-recommends -y \
-     ca-certificates \
-     libssl1.1 \
-     libcurl4 \
-     netbase \
-     && \
-  osslsigncode --version && \
-  #
-  echo "#################################################" && \
-  echo "Installing libraries required by libpkcs11-proxy..." && \
-  echo "#################################################" && \
-  apt-get install --no-install-recommends -y libengine-pkcs11-openssl && \
+    ca-certificates \
+    libssl3 \
+    libcurl4 \
+    netbase \
+
+  osslsigncode --version
+
+  echo "#################################################"
+  echo "Installing libraries required by libpkcs11-proxy..."
+  echo "#################################################"
+  apt-get install --no-install-recommends -y libengine-pkcs11-openssl
   # -> /usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so
   # -> /usr/lib/x86_64-linux-gnu/engines-1.1/libpkcs11.so
   # -> After this operation, 6714 kB of additional disk space will be used.
   #
-  #apt-get install --no-install-recommends -y opensc-pkcs11 && \
+  #apt-get install --no-install-recommends -y opensc-pkcs11
   # -> /usr/lib/x86_64-linux-gnu/pkcs11/opensc-pkcs11.so
   # -> /usr/lib/x86_64-linux-gnu/opensc-pkcs11.so
   # -> After this operation, 10.6 MB of additional disk space will be used.
@@ -68,16 +79,21 @@ RUN --mount=type=bind,source=.shared,target=/mnt/shared \
   #   error:260B6068:engine routines:dynamic_load:DSO failure:
   #     ../crypto/engine/eng_dyn.c:427: Failed
   #
-  echo "#################################################" && \
-  echo "Configuring Node.js ..." && \
-  echo "#################################################" && \
-  $(which node) -v && \
-  $(which npm) -v && \
+  echo "#################################################"
+  echo "Configuring Node.js ..."
+  echo "#################################################"
+  $(which node) -v
+  $(which npm) -v
   # allow unpriviledged node process bind to priviledged ports below 1024
-  apt-get install --no-install-recommends -y libcap2-bin && \
-  setcap cap_net_bind_service=+ep $(which node) && \
-  #
+  apt-get install --no-install-recommends -y libcap2-bin
+  setcap cap_net_bind_service=+ep "$(which node)"
+
+  echo "#################################################"
+  echo "Cleanup..."
+  echo "#################################################"
   /mnt/shared/cmd/debian-cleanup.sh
+
+EOF
 
 ARG BUILD_DATE
 ARG GIT_BRANCH
@@ -99,34 +115,45 @@ ENV \
   OSSLSIGNCODE_OPTS=''
 
 
-RUN \
-  set -eu && \
-  echo -e "\
-GIT_REPO:    $GIT_REPO_URL\n\
-GIT_BRANCH:  $GIT_BRANCH\n\
-GIT_COMMIT:  $GIT_COMMIT_HASH @ $GIT_COMMIT_DATE\n\
-IMAGE_BUILD: $BUILD_DATE\n" >/opt/build_info && \
-  cat /opt/build_info && \
-  #
-  echo "#################################################" && \
-  echo "Installing meshcentral..." && \
-  echo "#################################################" && \
-  mkdir /opt/meshcentral && \
+RUN <<EOF
+
+  echo "#################################################"
+  echo "Writing build_info..."
+  echo "#################################################"
+  echo "
+GIT_REPO:    $GIT_REPO_URL
+GIT_BRANCH:  $GIT_BRANCH
+GIT_COMMIT:  $GIT_COMMIT_HASH @ $GIT_COMMIT_DATE
+IMAGE_BUILD: $BUILD_DATE" >/opt/build_info
+  cat /opt/build_info
+
+  echo "#################################################"
+  echo "Installing meshcentral..."
+  echo "#################################################"
+  mkdir /opt/meshcentral
   chown -R node:node /opt/meshcentral
+
+EOF
 
 USER node
 
 WORKDIR /opt/meshcentral
 
-RUN \
-  set -eux && \
-  echo -e '{\n\
-    "name": "meshcentral-server",\n\
-    "version": "0.0.0"\n\
-}' > package.json && \
-  npm install meshcentral --only=production && \
-  npm list && \
+# see https://github.com/hadolint/hadolint/wiki/DL3016
+# hadolint ignore=DL3016
+RUN <<EOF
+
+  set -x
+  echo '{
+    "name": "meshcentral-server",
+    "version": "0.0.0"
+}' > package.json
+
+  npm install meshcentral --only=production
+  npm list
   node ./node_modules/meshcentral --help
+
+EOF
 
 COPY image/run.sh /opt/run.sh
 COPY .shared/lib/bash-init.sh /opt/bash-init.sh
