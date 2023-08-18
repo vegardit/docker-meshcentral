@@ -54,7 +54,7 @@ set +x
 #################################################
 # LC_ALL=en_US.utf8 -> workaround for "grep: -P supports only unibyte and UTF-8 locales"
 # 2>/dev/null -> workaround for "write /dev/stdout: The pipe is being closed."
-meshcentral_version=$(docker run --rm $image_name node node_modules/meshcentral --help 2>/dev/null | head -1 | LC_ALL=en_US.utf8 grep -oP 'MeshCentral v\K\d+\.\d+\.\d+' || true)
+meshcentral_version=$(docker run --rm $image_name node node_modules/meshcentral --help 2>/dev/null | LC_ALL=en_US.utf8 grep -oP 'MeshCentral v\K\d+\.\d+\.\d+' | head -1 || true)
 echo "meshcentral_version=$meshcentral_version"
 
 
