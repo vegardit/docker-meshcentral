@@ -133,6 +133,9 @@ IMAGE_BUILD: $BUILD_DATE" >/opt/build_info
   mkdir /opt/meshcentral
   chown -R node:node /opt/meshcentral
 
+  # TODO temporary workaround for CVE-2024-21538, see https://github.com/npm/cli/issues/7902
+  rm -rf /usr/local/lib/node_modules/npm/node_modules/cross-spawn
+
 EOF
 
 USER node
@@ -149,10 +152,9 @@ RUN <<EOF
     "version": "0.0.0"
 }' > package.json
 
-  npm install meshcentral --only=production
+  npm install meshcentral --omit=dev
   npm list
   node ./node_modules/meshcentral --help
-
 EOF
 
 COPY image/run.sh /opt/run.sh
