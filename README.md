@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/github/license/vegardit/docker-meshcentral.svg?label=license)](#license)
 [![Docker Pulls](https://img.shields.io/docker/pulls/vegardit/meshcentral.svg)](https://hub.docker.com/r/vegardit/meshcentral)
 [![Docker Stars](https://img.shields.io/docker/stars/vegardit/meshcentral.svg)](https://hub.docker.com/r/vegardit/meshcentral)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
 1. [What is it?](#what-is-it)
 1. [Configuration](#config)
