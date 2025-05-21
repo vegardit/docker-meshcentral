@@ -1,6 +1,5 @@
-#syntax=docker/dockerfile:1.4
-# see https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md#user-content-syntax
-# see https://docs.docker.com/build/dockerfile/frontend/
+#syntax=docker/dockerfile:1
+# see https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/reference.md
 # see https://docs.docker.com/engine/reference/builder/#syntax
 #
 # SPDX-FileCopyrightText: © Vegard IT GmbH (https://vegardit.com)
@@ -8,19 +7,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-ArtifactOfProjectHomePage: https://github.com/vegardit/docker-meshcentral
 #
-# https://hub.docker.com/_/node/tags?name=lts-bookworm-slim
+# https://hub.docker.com/_/node/tags?name=lts-slim
 
-# see https://github.com/hadolint/hadolint/wiki/DL3006
-# hadolint ignore=DL3006
-ARG BASE_IMAGE=node:lts-bookworm-slim
+ARG BASE_IMAGE=node:lts-slim
 
-# see https://github.com/hadolint/hadolint/wiki/DL3006
+# https://github.com/hadolint/hadolint/wiki/DL3006 Always tag the version of an image explicitly
 # hadolint ignore=DL3006
 FROM ${BASE_IMAGE}
 
 LABEL maintainer="Vegard IT GmbH (vegardit.com)"
 
-# see https://github.com/hadolint/hadolint/wiki/DL3002
+# https://github.com/hadolint/hadolint/wiki/DL3002 Last USER should not be root
 # hadolint ignore=DL3002
 USER root
 
@@ -36,6 +33,8 @@ ARG BASE_LAYER_CACHE_KEY
 COPY --from=vegardit/osslsigncode:develop-debian /usr/local/bin/osslsigncode /usr/local/bin/osslsigncode
 COPY --from=vegardit/softhsm2-pkcs11-proxy:develop-debian /usr/local/lib/libpkcs11-proxy* /usr/local/lib/
 
+# https://github.com/hadolint/hadolint/wiki/DL3008 Pin versions in apt-get
+# hadolint ignore=DL3008
 RUN --mount=type=bind,source=.shared,target=/mnt/shared <<EOF
 
   /mnt/shared/cmd/debian-install-os-updates.sh
@@ -53,7 +52,7 @@ RUN --mount=type=bind,source=.shared,target=/mnt/shared <<EOF
     ca-certificates \
     libssl3 \
     libcurl4 \
-    netbase \
+    netbase
 
   osslsigncode --version
 
@@ -88,9 +87,6 @@ RUN --mount=type=bind,source=.shared,target=/mnt/shared <<EOF
   apt-get install --no-install-recommends -y libcap2-bin
   setcap cap_net_bind_service=+ep "$(which node)"
 
-  echo "#################################################"
-  echo "Cleanup..."
-  echo "#################################################"
   /mnt/shared/cmd/debian-cleanup.sh
 
 EOF
@@ -142,7 +138,7 @@ USER node
 
 WORKDIR /opt/meshcentral
 
-# see https://github.com/hadolint/hadolint/wiki/DL3016
+# see https://github.com/hadolint/hadolint/wiki/DL3016 Pin versions in npm
 # hadolint ignore=DL3016
 RUN <<EOF
 

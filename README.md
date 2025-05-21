@@ -10,15 +10,15 @@
 1. [Configuration](#config)
    1. [Configuration Template File](#config-template-file)
    1. [Init Script](#init-script)
-   1. [Signing Windows Agent EXEs](code-signing)
+   1. [Signing Windows Agent EXEs](#code-signing)
 1. [License](#license)
 
 
 ## <a name="what-is-it"></a>What is it?
 
-Opinionated docker image to run a [MeshCentral](https://meshcentral.com/info/) server to manage/access remote machines from within a browser.
+Opinionated, multi-arch Docker image to run a [MeshCentral](https://meshcentral.com/) server to manage/access remote machines from within a browser.
 
-It is automatically built **daily** to include the latest OS security fixes.
+It is automatically built **weekly** to include the latest OS security fixes.
 
 
 ## <a name="config"></a>Configuration
@@ -54,7 +54,7 @@ The processed file is then saved at `/opt/meshcentral/meshcentral-data/config.js
 For example, given the following file on the docker host `/opt/data/templates/meshcentral-config-template.json`...
 ```json
 {
-  "$schema": "http://info.meshcentral.com/downloads/meshcentral-config-schema.json",
+  "$schema": "https://raw.githubusercontent.com/Ylianst/MeshCentral/refs/heads/master/meshcentral-config-schema.json",
   "settings": {
     "cert": "${MC_HOSTNAME}",
     "sessionKey": "${MC_SESSION_KEY}",
@@ -151,8 +151,8 @@ Please consult **osslsigncode**'s [usage documentation](https://github.com/mtroj
 ## Resources
 
 - Config.json Schema: https://github.com/Ylianst/MeshCentral/blob/master/meshcentral-config-schema.json
-- Installation Guide: https://info.meshcentral.com/downloads/MeshCentral2/MeshCentral2InstallGuide.pdf
-- User Guide: https://info.meshcentral.com/downloads/MeshCentral2/MeshCentral2UserGuide.pdf
+- Installation Guide: https://meshcentral.com/docs/MeshCentral2InstallGuide.pdf
+- User Guide: https://meshcentral.com/docs/MeshCentral2UserGuide.pdf
 
 
 ## <a name="license"></a>License
