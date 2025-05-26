@@ -30,10 +30,10 @@ log INFO "Timezone is $(date +"%Z %z")"
 # load custom init script if specified
 #################################################
 if [[ -f ${INIT_SH_FILE:-} ]]; then
-   log INFO "Loading [$INIT_SH_FILE]..."
+  log INFO "Loading [$INIT_SH_FILE]..."
 
-   # shellcheck disable=SC1090  # ShellCheck can't follow non-constant source
-   source "$INIT_SH_FILE"
+  # shellcheck disable=SC1090  # ShellCheck can't follow non-constant source
+  source "$INIT_SH_FILE"
 fi
 
 
@@ -42,16 +42,16 @@ fi
 #################################################
 if [[ -n $CONFIG_TEMPLATE_FILE ]]; then
 
-   if [[ ! -f $CONFIG_TEMPLATE_FILE ]]; then
-      log ERROR "Specified config.json template file [$CONFIG_TEMPLATE_FILE] does not exist."
-   fi
+  if [[ ! -f $CONFIG_TEMPLATE_FILE ]]; then
+    log ERROR "Specified config.json template file [$CONFIG_TEMPLATE_FILE] does not exist."
+  fi
 
-   log INFO "Generating config.js based on template [$CONFIG_TEMPLATE_FILE]..."
-   if interpolated=$(interpolate <"$CONFIG_TEMPLATE_FILE"); then
-      echo "$interpolated" >meshcentral-data/config.json
-   else
-      exit $?
-   fi
+  log INFO "Generating config.js based on template [$CONFIG_TEMPLATE_FILE]..."
+  if interpolated=$(interpolate <"$CONFIG_TEMPLATE_FILE"); then
+    echo "$interpolated" >meshcentral-data/config.json
+  else
+    exit $?
+  fi
 fi
 
 

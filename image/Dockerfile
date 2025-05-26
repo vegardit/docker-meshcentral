@@ -6,37 +6,28 @@
 # SPDX-FileContributor: Sebastian Thomschke
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-ArtifactOfProjectHomePage: https://github.com/vegardit/docker-meshcentral
-#
-# https://hub.docker.com/_/node/tags?name=lts-slim
 
+# https://hub.docker.com/_/node/tags?name=lts-slim
 ARG BASE_IMAGE=node:lts-slim
 
 # https://github.com/hadolint/hadolint/wiki/DL3006 Always tag the version of an image explicitly
 # hadolint ignore=DL3006
-FROM ${BASE_IMAGE}
-
-LABEL maintainer="Vegard IT GmbH (vegardit.com)"
-
-# https://github.com/hadolint/hadolint/wiki/DL3002 Last USER should not be root
-# hadolint ignore=DL3002
-USER root
-
-SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+FROM ${BASE_IMAGE} as final
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG LC_ALL=C
 
-ARG INSTALL_SUPPORT_TOOLS=0
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
+ARG INSTALL_SUPPORT_TOOLS=0
 ARG BASE_LAYER_CACHE_KEY
 
-COPY --from=vegardit/osslsigncode:develop-debian /usr/local/bin/osslsigncode /usr/local/bin/osslsigncode
+COPY --from=vegardit/osslsigncode:develop-debian          /usr/local/bin/osslsigncode     /usr/local/bin/osslsigncode
 COPY --from=vegardit/softhsm2-pkcs11-proxy:develop-debian /usr/local/lib/libpkcs11-proxy* /usr/local/lib/
 
 # https://github.com/hadolint/hadolint/wiki/DL3008 Pin versions in apt-get
 # hadolint ignore=DL3008
 RUN --mount=type=bind,source=.shared,target=/mnt/shared <<EOF
-
   /mnt/shared/cmd/debian-install-os-updates.sh
   /mnt/shared/cmd/debian-install-support-tools.sh
 
@@ -91,17 +82,27 @@ RUN --mount=type=bind,source=.shared,target=/mnt/shared <<EOF
 
 EOF
 
-ARG BUILD_DATE
-ARG GIT_BRANCH
-ARG GIT_COMMIT_HASH
-ARG GIT_COMMIT_DATE
-ARG GIT_REPO_URL
+ARG OCI_authors
+ARG OCI_title
+ARG OCI_description
+ARG OCI_source
+ARG OCI_revision
+ARG OCI_version
+ARG OCI_created
 
+ARG GIT_BRANCH
+ARG GIT_COMMIT_DATE
+
+# https://github.com/opencontainers/image-spec/blob/main/annotations.md
 LABEL \
-  org.label-schema.schema-version="1.0" \
-  org.label-schema.build-date=$BUILD_DATE \
-  org.label-schema.vcs-ref=$GIT_COMMIT_HASH \
-  org.label-schema.vcs-url=$GIT_REPO_URL
+  org.opencontainers.image.title="$OCI_title" \
+  org.opencontainers.image.description="$OCI_description" \
+  org.opencontainers.image.source="$OCI_source" \
+  org.opencontainers.image.revision="$OCI_revision" \
+  org.opencontainers.image.version="$OCI_version" \
+  org.opencontainers.image.created="$OCI_created"
+
+LABEL maintainer="$OCI_authors"
 
 # Default configuration: can be overridden at the docker command line
 ENV \
@@ -110,17 +111,16 @@ ENV \
   CONFIG_TEMPLATE_FILE='' \
   OSSLSIGNCODE_OPTS=''
 
-
 RUN <<EOF
-
   echo "#################################################"
   echo "Writing build_info..."
   echo "#################################################"
-  echo "
-GIT_REPO:    $GIT_REPO_URL
+  cat <<EOT >/opt/build_info
+GIT_REPO:    $OCI_source
 GIT_BRANCH:  $GIT_BRANCH
-GIT_COMMIT:  $GIT_COMMIT_HASH @ $GIT_COMMIT_DATE
-IMAGE_BUILD: $BUILD_DATE" >/opt/build_info
+GIT_COMMIT:  $OCI_revision @ $GIT_COMMIT_DATE
+IMAGE_BUILD: $OCI_created
+EOT
   cat /opt/build_info
 
   echo "#################################################"
@@ -151,6 +151,7 @@ RUN <<EOF
   npm install meshcentral --omit=dev
   npm list
   node ./node_modules/meshcentral --help
+
 EOF
 
 COPY image/run.sh /opt/run.sh
