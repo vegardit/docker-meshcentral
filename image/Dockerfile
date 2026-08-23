@@ -134,6 +134,8 @@ EOT
 
 EOF
 
+# https://github.com/hadolint/hadolint/wiki/DL3066 Non-numeric user-id may not be resolvable by host system
+# hadolint ignore=DL3066
 USER node
 
 WORKDIR /opt/meshcentral
